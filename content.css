@@ -1,0 +1,52 @@
+/* Hedgehog Mode Extension Styles */
+
+.HedgehogBuddy {
+  position: fixed;
+  z-index: 2147483647; /* Maximum z-index to stay on top */
+  margin: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.HedgehogBuddy__sprite {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  background-size: 800%; /* 8 frames per row */
+}
+
+.HedgehogBuddy__accessory {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 80px;
+  height: 80px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+}
+
+.HedgehogBuddy__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 80px;
+  height: 80px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  background-size: 800%;
+  pointer-events: none;
+}
+
+/* Prevent text selection while dragging */
+body.hedgehog-dragging {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hedgehog Mode</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      width: 320px;
+      padding: 16px;
+      background: #1d1f27;
+      color: #fff;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #3c4152;
+    }
+
+    .header-icon {
+      width: 40px;
+      height: 40px;
+      background: url('sprites/skins/default/wave.png') no-repeat;
+      background-size: 800%;
+      image-rendering: pixelated;
+    }
+
+    h1 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: #9ba0b0;
+    }
+
+    .toggle-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: #2c2f3e;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .toggle-label {
+      font-weight: 500;
+    }
+
+    .toggle {
+      position: relative;
+      width: 48px;
+      height: 24px;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #4b5167;
+      transition: 0.3s;
+      border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    .toggle input:checked + .toggle-slider {
+      background-color: #f96132;
+    }
+
+    .toggle input:checked + .toggle-slider:before {
+      transform: translateX(24px);
+    }
+
+    .section {
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #9ba0b0;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+
+    .option-btn {
+      width: 100%;
+      aspect-ratio: 1;
+      border: 2px solid transparent;
+      border-radius: 6px;
+      background: #2c2f3e;
+      cursor: pointer;
+      padding: 4px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .option-btn:hover {
+      background: #3c4152;
+    }
+
+    .option-btn.active {
+      border-color: #f96132;
+      background: #3c4152;
+    }
+
+    .option-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .color-option {
+      width: 100%;
+      height: 100%;
+      border-radius: 4px;
+    }
+
+    .skin-option {
+      font-size: 10px;
+      color: #fff;
+      text-align: center;
+    }
+
+    .checkbox-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .checkbox-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #f96132;
+    }
+
+    .action-btn {
+      width: 100%;
+      padding: 10px;
+      background: #f96132;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+
+    .action-btn:hover {
+      background: #e55527;
+    }
+
+    .action-btn.secondary {
+      background: #3c4152;
+    }
+
+    .action-btn.secondary:hover {
+      background: #4b5167;
+    }
+
+    .footer {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #3c4152;
+      text-align: center;
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .footer a {
+      color: #f96132;
+      text-decoration: none;
+    }
+
+    .controls-hint {
+      font-size: 11px;
+      color: #6b7280;
+      background: #2c2f3e;
+      padding: 8px;
+      border-radius: 6px;
+      margin-top: 8px;
+    }
+
+    .controls-hint strong {
+      color: #9ba0b0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-icon"></div>
+    <div>
+      <h1>Hedgehog Mode</h1>
+      <div class="subtitle">Your friendly desktop companion</div>
+    </div>
+  </div>
+
+  <div class="toggle-section">
+    <span class="toggle-label">Enable Hedgehog</span>
+    <label class="toggle">
+      <input type="checkbox" id="enableToggle">
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Skin</div>
+    <div class="options-grid" id="skinOptions">
+      <button class="option-btn active" data-skin="default" title="Default">
+        <span class="skin-option">Default</span>
+      </button>
+      <button class="option-btn" data-skin="spiderhog" title="Spiderhog">
+        <span class="skin-option">Spider</span>
+      </button>
+      <button class="option-btn" data-skin="robohog" title="Robohog">
+        <span class="skin-option">Robo</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Color</div>
+    <div class="options-grid" id="colorOptions">
+      <button class="option-btn active" data-color="" title="Original">
+        <div class="color-option" style="background: linear-gradient(135deg, #8B7355, #A0522D);"></div>
+      </button>
+      <button class="option-btn" data-color="red" title="Red">
+        <div class="color-option" style="background: #e74c3c;"></div>
+      </button>
+      <button class="option-btn" data-color="green" title="Green">
+        <div class="color-option" style="background: #2ecc71;"></div>
+      </button>
+      <button class="option-btn" data-color="blue" title="Blue">
+        <div class="color-option" style="background: #3498db;"></div>
+      </button>
+      <button class="option-btn" data-color="purple" title="Purple">
+        <div class="color-option" style="background: #9b59b6;"></div>
+      </button>
+      <button class="option-btn" data-color="dark" title="Dark">
+        <div class="color-option" style="background: #2c3e50;"></div>
+      </button>
+      <button class="option-btn" data-color="light" title="Light">
+        <div class="color-option" style="background: #ecf0f1;"></div>
+      </button>
+      <button class="option-btn" data-color="sepia" title="Sepia">
+        <div class="color-option" style="background: #d4a574;"></div>
+      </button>
+      <button class="option-btn" data-color="greyscale" title="Greyscale">
+        <div class="color-option" style="background: linear-gradient(135deg, #555, #999);"></div>
+      </button>
+      <button class="option-btn" data-color="invert" title="Inverted">
+        <div class="color-option" style="background: linear-gradient(135deg, #000, #fff);"></div>
+      </button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Accessories</div>
+    <div class="options-grid" id="accessoryOptions">
+      <!-- Accessories will be populated by JS -->
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Options</div>
+    <div class="checkbox-section">
+      <label class="checkbox-item">
+        <input type="checkbox" id="walkingEnabled" checked>
+        <span>Walking enabled</span>
+      </label>
+      <label class="checkbox-item">
+        <input type="checkbox" id="interactionsEnabled" checked>
+        <span>Land on page elements</span>
+      </label>
+      <label class="checkbox-item">
+        <input type="checkbox" id="controlsEnabled" checked>
+        <span>Keyboard controls</span>
+      </label>
+    </div>
+    <div class="controls-hint">
+      <strong>Controls:</strong> Arrow keys or WASD to move, Space to jump. Try typing "fire" for a surprise!
+    </div>
+  </div>
+
+  <button class="action-btn secondary" id="fireBtn">Set on Fire!</button>
+
+  <div class="footer">
+    Made with love by <a href="https://posthog.com" target="_blank">PostHog</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
