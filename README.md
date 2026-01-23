@@ -1,66 +1,71 @@
-# Hedgehog Mode Browser Extension
+# Hedgehog Mode Anywhere 🦔
 
-An adorable animated hedgehog buddy that can walk around on any website! Based on PostHog's beloved hedgehog mascot.
+Bring [PostHog](https://posthog.com)'s beloved hedgehog mascot to any website! An adorable animated companion that walks, jumps, and keeps you company while you browse.
 
-## Features
+## ✨ Features
 
-- Animated hedgehog that walks, jumps, waves, and more
-- Physics-based movement with gravity and bouncing
-- Can land on and walk across page elements (buttons, inputs, navbars)
-- Drag and throw the hedgehog with your mouse
-- Keyboard controls (arrow keys or WASD)
-- Multiple skins: Default, Spiderhog, Robohog
-- Color customization with 10 color filters
-- 15 accessories to dress up your hedgehog
-- Secret codes and easter eggs!
+- 🚶 Animated hedgehog with multiple animations (walk, jump, wave, inspect, and more)
+- 🎯 Physics-based movement with gravity and bouncing
+- 🧱 Lands on and walks across page elements (buttons, inputs, navbars)
+- 🖱️ Drag and throw with your mouse
+- ⌨️ Keyboard controls (WASD / arrow keys)
+- 🎭 3 skins: Default, Spiderhog, Robohog
+- 🎨 11 color variations
+- 👒 16 accessories across headwear, eyewear, and other categories
+- 🥚 Secret codes and easter eggs
 
-## Installation
+## 📦 Installation
 
 ### Chrome / Brave / Edge (Chromium browsers)
 
-1. Open your browser and navigate to `chrome://extensions/` (or `brave://extensions/`, `edge://extensions/`)
-2. Enable "Developer mode" using the toggle in the top-right corner
-3. Click "Load unpacked"
-4. Select the `hedgehog-extension` folder
-5. The hedgehog icon should appear in your browser toolbar
+1. Clone or download this repository
+2. Open your browser and navigate to `chrome://extensions/` (or `brave://extensions/`, `edge://extensions/`)
+3. Enable "Developer mode" using the toggle in the top-right corner
+4. Click "Load unpacked"
+5. Select the repository folder
+6. The hedgehog icon should appear in your browser toolbar
 
 ### Firefox
 
-1. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`
-2. Click "Load Temporary Add-on..."
-3. Select the `manifest.json` file in the `hedgehog-extension` folder
-4. The hedgehog icon should appear in your browser toolbar
+1. Clone or download this repository
+2. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`
+3. Click "Load Temporary Add-on..."
+4. Select the `manifest.json` file
+5. The hedgehog icon should appear in your browser toolbar
 
-## Usage
+## 🚀 Usage
 
-1. Click the hedgehog icon in your toolbar to open the popup
-2. Toggle "Enable Hedgehog" to add a hedgehog to the current page
+1. Click the hedgehog icon in your toolbar to open the settings popup
+2. Toggle "Enabled hedgehog mode" to add a hedgehog to the current page
 3. Customize your hedgehog with different skins, colors, and accessories
 
-### Controls
+### 🎮 Controls
 
-- **Arrow keys or WASD**: Move the hedgehog left/right
-- **Space or W/Up Arrow**: Jump (double-jump supported!)
-- **Down Arrow or S**: Wave (when on ground) or drop through platforms
-- **Shift + Arrow**: Moonwalk!
-- **Click and drag**: Pick up and throw the hedgehog
+| Input | Action |
+|-------|--------|
+| Arrow keys / WASD | Move left/right |
+| Space / W / Up | Jump (double-jump supported!) |
+| Down / S | Wave (on ground) or drop through platforms |
+| Shift + direction | Moonwalk 🕺 |
+| Click and drag | Pick up and throw |
 
-### Secret Codes
+### 🤫 Secret Codes
 
 Type these while on a page with the hedgehog:
-- `fff` or `fire`: Sets the hedgehog on fire!
-- `spiderhog`: Changes to Spiderhog skin (click anywhere to web-sling!)
-- `robohog`: Changes to Robohog skin
-- **Konami code** (↑↑↓↓←→←→BA): Fire + antigravity!
 
-## Options
+| Code | Effect |
+|------|--------|
+| `fff` or `fire` | 🔥 Sets the hedgehog on fire |
+| `spiderhog` | 🕷️ Spiderhog skin (click to web-sling!) |
+| `robohog` | 🤖 Robohog skin |
+| ↑↑↓↓←→←→BA | 🚀 Fire + antigravity |
 
-- **Walking enabled**: Let the hedgehog walk around on its own
-- **Land on page elements**: Allow the hedgehog to land on buttons, inputs, etc.
-- **Keyboard controls**: Enable arrow key/WASD controls
+## ⚙️ Options
+
+- **Walk around freely** - Let the hedgehog roam on its own
+- **Interact with elements** - Land on buttons, inputs, and other page elements
+- **Keyboard controls** - Enable WASD / arrow key movement
 
 ## Credits
 
-Based on PostHog's hedgehog mode - https://posthog.com
-
-Made with love by the PostHog team.
+Built with ❤️ by [PostHog](https://posthog.com). Based on the hedgehog mode feature in the PostHog app.
