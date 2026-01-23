@@ -8,6 +8,8 @@
   pointer-events: auto;
   user-select: none;
   -webkit-user-select: none;
+  will-change: left, bottom;
+  contain: layout style;
 }
 
 .HedgehogBuddy__sprite {
@@ -18,6 +20,8 @@
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
   background-size: 800%; /* 8 frames per row */
+  will-change: transform, background-position;
+  transform: translateZ(0);
 }
 
 .HedgehogBuddy__accessory {

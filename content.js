@@ -13,13 +13,13 @@
   const GRAVITY_PIXELS = 10;
   const MAX_JUMP_COUNT = 2;
 
-  // Base URL for sprites (served from extension)
-  const getBaseSpritePath = () => chrome.runtime.getURL('sprites');
+  // Base URL for sprites (served from extension) - cached once
+  const BASE_SPRITE_PATH = chrome.runtime.getURL('sprites');
 
   // Sprite URL helpers
-  const spriteUrl = (skin, img) => `${getBaseSpritePath()}/skins/${skin}/${img}.png`;
-  const spriteOverlayUrl = (img) => `${getBaseSpritePath()}/overlays/${img}.png`;
-  const spriteAccessoryUrl = (img) => `${getBaseSpritePath()}/accessories/${img}.png`;
+  const spriteUrl = (skin, img) => `${BASE_SPRITE_PATH}/skins/${skin}/${img}.png`;
+  const spriteOverlayUrl = (img) => `${BASE_SPRITE_PATH}/overlays/${img}.png`;
+  const spriteAccessoryUrl = (img) => `${BASE_SPRITE_PATH}/accessories/${img}.png`;
 
   // Color filters
   const COLOR_TO_FILTER_MAP = {
@@ -150,6 +150,24 @@
         ...config,
       };
 
+      // Cached ground elements for performance
+      this._groundElementsCache = [];
+      this._groundCacheTime = 0;
+      this._preloadLinks = [];
+
+      // Bound event handlers for cleanup
+      this._boundKeyDown = null;
+      this._boundKeyUp = null;
+      this._boundMouseDown = null;
+
+      // Render cache to avoid recomputing every frame
+      this._cachedAccessories = null;
+      this._cachedAccessoriesKey = null;
+      this._cachedSpriteUrl = null;
+      this._cachedSpriteUrlKey = null;
+      this._cachedFilter = null;
+      this._cachedFilterKey = null;
+
       this.preloadAnimationSprites();
       this.setAnimation('fall');
     }
@@ -159,17 +177,27 @@
     }
 
     preloadAnimationSprites() {
+      // Remove old preload links
+      this._preloadLinks.forEach(link => link.remove());
+      this._preloadLinks = [];
+
       for (const animation of Object.values(this.animations())) {
         const preload = document.createElement('link');
         preload.rel = 'preload';
         preload.as = 'image';
         preload.href = spriteUrl(this.config.skin, animation.img);
         document.head.appendChild(preload);
+        this._preloadLinks.push(preload);
       }
     }
 
     accessories() {
-      return (this.config.accessories || []).map((acc) => standardAccessories[acc]).filter(Boolean);
+      const key = (this.config.accessories || []).join(',');
+      if (this._cachedAccessoriesKey !== key) {
+        this._cachedAccessoriesKey = key;
+        this._cachedAccessories = (this.config.accessories || []).map((acc) => standardAccessories[acc]).filter(Boolean);
+      }
+      return this._cachedAccessories;
     }
 
     setOnFire(times = 3) {
@@ -416,19 +444,23 @@
         }
       }
 
-      const blocksWithBoxes = Array.from(
-        document.querySelectorAll(
-          'button, input, select, .btn, [role="button"], nav, header, footer, aside, .card, .modal, .dialog, .HedgehogBuddy'
-        )
-      )
-        .filter((x) => x !== this.element)
-        .map((block) => [block, elementToBox(block)]);
+      // Refresh ground elements cache every 500ms instead of every frame
+      const now = Date.now();
+      if (now - this._groundCacheTime > 500) {
+        this._groundElementsCache = Array.from(
+          document.querySelectorAll(
+            'button, input, select, .btn, [role="button"], nav, header, footer, aside, .card, .modal, .dialog, .HedgehogBuddy'
+          )
+        ).filter((x) => x !== this.element);
+        this._groundCacheTime = now;
+      }
 
       let highestCandidate = null;
 
-      blocksWithBoxes.forEach(([block, box]) => {
-        if (box.y + box.height > window.innerHeight || box.y < 0) return;
-        if (this.ignoreGroundAboveY && box.y + box.height > this.ignoreGroundAboveY) return;
+      for (const block of this._groundElementsCache) {
+        const box = elementToBox(block);
+        if (box.y + box.height > window.innerHeight || box.y < 0) continue;
+        if (this.ignoreGroundAboveY && box.y + box.height > this.ignoreGroundAboveY) continue;
 
         const isAboveOrOn =
           hedgehogBox.x + hedgehogBox.width > box.x &&
@@ -440,14 +472,15 @@
             highestCandidate = [block, box];
           }
         }
-      });
+      }
 
       return highestCandidate?.[0] ?? document.body;
     }
 
     onGround() {
       if (this.ground) {
-        const groundLevel = elementToBox(this.ground).y + elementToBox(this.ground).height;
+        const groundBox = elementToBox(this.ground);
+        const groundLevel = groundBox.y + groundBox.height;
         return this.y <= groundLevel;
       }
       return false;
@@ -459,9 +492,9 @@
 
     render() {
       if (!this.element) {
+        // Create elements off-DOM first to avoid layout thrashing
         this.element = document.createElement('div');
         this.element.className = 'HedgehogBuddy';
-        document.body.appendChild(this.element);
 
         this.spriteElement = document.createElement('div');
         this.spriteElement.className = 'HedgehogBuddy__sprite';
@@ -469,24 +502,48 @@
 
         this.accessoryElements = [];
         this.overlayElement = null;
+        this._lastTransitionState = null;
 
+        // Set initial position before appending to DOM
+        this.element.style.left = `${this.x}px`;
+        this.element.style.bottom = `${this.y - SHADOW_HEIGHT * 0.5}px`;
+
+        document.body.appendChild(this.element);
         this.setupEventListeners();
       }
 
       // Update position
       this.element.style.left = `${this.x}px`;
       this.element.style.bottom = `${this.y - SHADOW_HEIGHT * 0.5}px`;
-      this.element.style.transition = !(this.isDragging || this.followMouse) ? `all ${1000 / FPS}ms` : 'none';
+
+      // Only update transition when drag/follow state changes
+      const shouldAnimate = !(this.isDragging || this.followMouse);
+      if (this._lastTransitionState !== shouldAnimate) {
+        this.element.style.transition = shouldAnimate ? `all ${frameDuration}ms` : 'none';
+        this._lastTransitionState = shouldAnimate;
+      }
 
       // Update sprite transform (direction)
       this.spriteElement.style.transform = `scaleX(${this.direction === 'right' ? 1 : -1})`;
 
       // Update main animation
       if (this.mainAnimation) {
-        const imageFilter = this.config.color ? COLOR_TO_FILTER_MAP[this.config.color] : 'none';
-        this.spriteElement.style.backgroundImage = `url(${spriteUrl(this.config.skin, this.mainAnimation.spriteInfo.img)})`;
+        // Cache filter value
+        if (this._cachedFilterKey !== this.config.color) {
+          this._cachedFilterKey = this.config.color;
+          this._cachedFilter = this.config.color ? COLOR_TO_FILTER_MAP[this.config.color] : 'none';
+        }
+
+        // Cache sprite URL
+        const spriteKey = `${this.config.skin}:${this.mainAnimation.spriteInfo.img}`;
+        if (this._cachedSpriteUrlKey !== spriteKey) {
+          this._cachedSpriteUrlKey = spriteKey;
+          this._cachedSpriteUrl = `url(${spriteUrl(this.config.skin, this.mainAnimation.spriteInfo.img)})`;
+        }
+
+        this.spriteElement.style.backgroundImage = this._cachedSpriteUrl;
         this.spriteElement.style.backgroundPosition = `-${(this.mainAnimation.frame % X_FRAMES) * SPRITE_SIZE}px -${Math.floor(this.mainAnimation.frame / X_FRAMES) * SPRITE_SIZE}px`;
-        this.spriteElement.style.filter = imageFilter;
+        this.spriteElement.style.filter = this._cachedFilter;
       }
 
       // Update accessories
@@ -505,10 +562,9 @@
       const accessoryPosition = this.mainAnimation?.spriteInfo.accessoryPositions?.[this.mainAnimation.frame];
       accessories.forEach((accessory, index) => {
         const accEl = this.accessoryElements[index];
-        const imageFilter = this.config.color ? COLOR_TO_FILTER_MAP[this.config.color] : 'none';
         accEl.style.backgroundImage = `url(${spriteAccessoryUrl(accessory.img)})`;
         accEl.style.transform = accessoryPosition ? `translate3d(${accessoryPosition[0]}px, ${accessoryPosition[1]}px, 0)` : '';
-        accEl.style.filter = imageFilter;
+        accEl.style.filter = this._cachedFilter;
       });
 
       // Update overlay animation
@@ -529,12 +585,10 @@
 
     setupEventListeners() {
       // Drag support
-      const onTouchOrMouseStart = (e) => {
-        let moved = false;
+      const onTouchOrMouseStart = () => {
         const lastPositions = [];
 
         const onMove = (e) => {
-          moved = true;
           this.isDragging = true;
           this.setAnimation('fall');
 
@@ -605,7 +659,7 @@
         },
       ];
 
-      const keyDownListener = (e) => {
+      this._boundKeyDown = (e) => {
         if (!this.config.controls_enabled) return;
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
 
@@ -653,7 +707,7 @@
         }
       };
 
-      const keyUpListener = (e) => {
+      this._boundKeyUp = (e) => {
         if (!this.config.controls_enabled) return;
         const key = e.key.toLowerCase();
 
@@ -663,11 +717,11 @@
         }
       };
 
-      window.addEventListener('keydown', keyDownListener);
-      window.addEventListener('keyup', keyUpListener);
+      window.addEventListener('keydown', this._boundKeyDown);
+      window.addEventListener('keyup', this._boundKeyUp);
 
       // Spiderhog web-slinging
-      const onMouseDown = (e) => {
+      this._boundMouseDown = (e) => {
         if (!this.config.controls_enabled || this.config.skin !== 'spiderhog') return;
 
         const elementBounds = this.element.getBoundingClientRect();
@@ -697,10 +751,26 @@
         window.addEventListener('mouseup', onMouseUp);
       };
 
-      window.addEventListener('mousedown', onMouseDown);
+      window.addEventListener('mousedown', this._boundMouseDown);
     }
 
     destroy() {
+      // Remove event listeners
+      if (this._boundKeyDown) {
+        window.removeEventListener('keydown', this._boundKeyDown);
+      }
+      if (this._boundKeyUp) {
+        window.removeEventListener('keyup', this._boundKeyUp);
+      }
+      if (this._boundMouseDown) {
+        window.removeEventListener('mousedown', this._boundMouseDown);
+      }
+
+      // Remove preload links
+      this._preloadLinks.forEach(link => link.remove());
+      this._preloadLinks = [];
+
+      // Remove DOM element
       if (this.element) {
         this.element.remove();
         this.element = null;
@@ -710,7 +780,9 @@
 
   // Main extension logic
   let hedgehog = null;
-  let animationTimer = null;
+  let animationFrameId = null;
+  let lastFrameTime = 0;
+  const frameDuration = 1000 / FPS;
 
   const startHedgehog = (config) => {
     if (hedgehog) {
@@ -718,20 +790,29 @@
     }
 
     hedgehog = new HedgehogActor(config);
+    lastFrameTime = performance.now();
 
-    const loop = () => {
+    const loop = (currentTime) => {
+      animationFrameId = requestAnimationFrame(loop);
+
+      // Throttle to target FPS
+      const elapsed = currentTime - lastFrameTime;
+      if (elapsed < frameDuration) return;
+
+      // Adjust for drift
+      lastFrameTime = currentTime - (elapsed % frameDuration);
+
       hedgehog.update();
       hedgehog.render();
-      animationTimer = setTimeout(loop, 1000 / FPS);
     };
 
-    loop();
+    animationFrameId = requestAnimationFrame(loop);
   };
 
   const stopHedgehog = () => {
-    if (animationTimer) {
-      clearTimeout(animationTimer);
-      animationTimer = null;
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
     }
     if (hedgehog) {
       hedgehog.destroy();
@@ -746,7 +827,7 @@
   };
 
   // Listen for messages from popup
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.type === 'TOGGLE_HEDGEHOG') {
       if (hedgehog) {
         stopHedgehog();
