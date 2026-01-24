@@ -2,6 +2,8 @@
 
 Bring [PostHog](https://posthog.com)'s beloved hedgehog mascot to any website! An adorable animated companion that walks, jumps, and keeps you company while you browse.
 
+![Demo](demo.gif)
+
 ## ✨ Features
 
 - 🚶 Animated hedgehog with multiple animations (walk, jump, wave, inspect, and more)
