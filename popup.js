@@ -10,7 +10,6 @@ let currentConfig = {
   interactions_enabled: true,
   controls_enabled: true,
   sound_enabled: false,
-  hedgehog_count: 1,
 };
 
 // Get the current skin+color combo ID
@@ -153,7 +152,6 @@ function updateUI() {
   document.getElementById('interactionsEnabled').checked = currentConfig.interactions_enabled;
   document.getElementById('controlsEnabled').checked = currentConfig.controls_enabled;
   document.getElementById('soundEnabled').checked = currentConfig.sound_enabled;
-  document.getElementById('hedgehogCount').textContent = currentConfig.hedgehog_count || 1;
 
   updatePreview();
 }
@@ -266,17 +264,4 @@ document.addEventListener('DOMContentLoaded', () => {
     saveAndSendConfig();
   });
 
-  document.getElementById('countDown').addEventListener('click', () => {
-    const count = Math.max(1, (currentConfig.hedgehog_count || 1) - 1);
-    currentConfig.hedgehog_count = count;
-    document.getElementById('hedgehogCount').textContent = count;
-    saveAndSendConfig();
-  });
-
-  document.getElementById('countUp').addEventListener('click', () => {
-    const count = Math.min(5, (currentConfig.hedgehog_count || 1) + 1);
-    currentConfig.hedgehog_count = count;
-    document.getElementById('hedgehogCount').textContent = count;
-    saveAndSendConfig();
-  });
 });

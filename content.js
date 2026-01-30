@@ -569,6 +569,11 @@
       } else if (this.overlayElement) {
         this.overlayElement.style.display = 'none';
       }
+
+      // Update spiderhog web line position
+      if (this._updateWebLine) {
+        this._updateWebLine();
+      }
     }
 
     setupEventListeners() {
@@ -735,7 +740,7 @@
         svg.appendChild(line);
         document.body.appendChild(svg);
 
-        const updateWebLine = () => {
+        this._updateWebLine = () => {
           if (!this.element) return;
           const rect = this.element.getBoundingClientRect();
           const hx = rect.left + rect.width / 2;
@@ -749,12 +754,12 @@
 
         const onMouseMove = (e) => {
           this.lastKnownMousePosition = [e.clientX, e.clientY];
-          updateWebLine();
         };
-        updateWebLine();
+        this._updateWebLine();
 
         const onMouseUp = () => {
           this.followMouse = false;
+          this._updateWebLine = null;
           svg.remove();
           window.removeEventListener('mousemove', onMouseMove);
         };
@@ -864,7 +869,7 @@
   const soundManager = new SoundManager();
 
   // Main extension logic
-  let hedgehogs = [];
+  let hedgehog = null;
   let animationFrameId = null;
   let lastFrameTime = 0;
   const frameDuration = 1000 / FPS;
@@ -872,13 +877,8 @@
   const startHedgehog = (config) => {
     stopHedgehog();
 
-    const count = Math.max(1, Math.min(5, config.hedgehog_count || 1));
     soundManager.enabled = !!config.sound_enabled;
-
-    for (let i = 0; i < count; i++) {
-      hedgehogs.push(new HedgehogActor(config));
-    }
-
+    hedgehog = new HedgehogActor(config);
     lastFrameTime = performance.now();
 
     const loop = (currentTime) => {
@@ -892,10 +892,8 @@
       lastFrameTime = currentTime - Math.min(elapsed % frameDuration, maxCatchup);
 
       try {
-        for (const hog of hedgehogs) {
-          hog.update();
-          hog.render();
-        }
+        hedgehog.update();
+        hedgehog.render();
       } catch (e) {
         console.error('[HedgehogMode] Animation error:', e);
       }
@@ -909,26 +907,16 @@
       cancelAnimationFrame(animationFrameId);
       animationFrameId = null;
     }
-    for (const hog of hedgehogs) {
-      hog.destroy();
+    if (hedgehog) {
+      hedgehog.destroy();
+      hedgehog = null;
     }
-    hedgehogs = [];
   };
 
   const updateConfig = (config) => {
     soundManager.enabled = !!config.sound_enabled;
-
-    const newCount = Math.max(1, Math.min(5, config.hedgehog_count || 1));
-    // Adjust hedgehog count if changed
-    while (hedgehogs.length > newCount) {
-      hedgehogs.pop().destroy();
-    }
-    while (hedgehogs.length < newCount) {
-      hedgehogs.push(new HedgehogActor(config));
-    }
-
-    for (const hog of hedgehogs) {
-      Object.assign(hog.config, config);
+    if (hedgehog) {
+      Object.assign(hedgehog.config, config);
     }
   };
 
@@ -942,16 +930,15 @@
     }
 
     if (message.type === 'GET_STATUS') {
-      const primary = hedgehogs[0] || null;
       sendResponse({
-        config: primary ? { ...primary.config } : null,
+        config: hedgehog ? { ...hedgehog.config } : null,
       });
       return true;
     }
 
     if (message.type === 'SET_ON_FIRE') {
-      if (hedgehogs.length > 0) {
-        hedgehogs[0].setOnFire();
+      if (hedgehog) {
+        hedgehog.setOnFire();
         sendResponse({ success: true });
       }
       return true;
@@ -973,9 +960,9 @@
       const siteDisabled = (result.disabledSites || []).includes(window.location.hostname);
       const shouldRun = enabled && !siteDisabled;
 
-      if (shouldRun && hedgehogs.length === 0) {
+      if (shouldRun && !hedgehog) {
         startHedgehog(result.hedgehogConfig || {});
-      } else if (!shouldRun && hedgehogs.length > 0) {
+      } else if (!shouldRun && hedgehog) {
         stopHedgehog();
       }
     });
@@ -985,7 +972,7 @@
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'sync') return;
 
-    if (changes.hedgehogConfig && hedgehogs.length > 0) {
+    if (changes.hedgehogConfig && hedgehog) {
       updateConfig(changes.hedgehogConfig.newValue || {});
     }
 
@@ -998,7 +985,6 @@
   window._hedgehogBuddy = {
     start: startHedgehog,
     stop: stopHedgehog,
-    getActors: () => hedgehogs,
-    getActor: () => hedgehogs[0] || null,
+    getActor: () => hedgehog,
   };
 })();
