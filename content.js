@@ -21,19 +21,21 @@
   const spriteOverlayUrl = (img) => `${BASE_SPRITE_PATH}/overlays/${img}.png`;
   const spriteAccessoryUrl = (img) => `${BASE_SPRITE_PATH}/accessories/${img}.png`;
 
-  // Color filters
-  const COLOR_TO_FILTER_MAP = {
-    red: 'hue-rotate(340deg) saturate(300%) brightness(90%)',
-    green: 'hue-rotate(60deg) saturate(100%)',
-    blue: 'hue-rotate(210deg) saturate(300%) brightness(90%)',
-    purple: 'hue-rotate(240deg)',
-    dark: 'brightness(70%)',
-    light: 'brightness(130%)',
-    sepia: 'sepia(100%) saturate(300%) brightness(70%)',
-    invert: 'invert(100%)',
-    'invert-hue': 'invert(100%) hue-rotate(180deg)',
-    greyscale: 'saturate(0%)',
-  };
+  // Physics constants
+  const JUMP_VELOCITY = 5;
+  const DAMPING_FACTOR = 0.6;
+  const BOUNCE_FACTOR = 0.4;
+  const USER_WALK_SPEED = 5;
+  const AUTO_WALK_SPEED = 1;
+  const BODY_GROUND_OFFSET = -1000;
+  const HEDGEHOG_BOX_X_INSET = 20;
+  const HEDGEHOG_BOX_Y_INSET = 5;
+  const HEDGEHOG_BOX_WIDTH_INSET = 40;
+  const HEDGEHOG_BOX_HEIGHT_INSET = 30;
+  const GROUND_CACHE_TTL = 500;
+  const MAX_THROW_VELOCITY = 250;
+  const MAX_SCREEN_VELOCITY = 200;
+  const SECRET_KEY_BUFFER_SIZE = 20;
 
   // Animation definitions
   const standardAnimations = {
@@ -80,24 +82,7 @@
     },
   };
 
-  const standardAccessories = {
-    beret: { img: 'beret', group: 'headwear' },
-    cap: { img: 'cap', group: 'headwear' },
-    chef: { img: 'chef', group: 'headwear' },
-    cowboy: { img: 'cowboy', group: 'headwear' },
-    eyepatch: { img: 'eyepatch', group: 'eyewear' },
-    flag: { img: 'flag', group: 'headwear' },
-    glasses: { img: 'glasses', group: 'eyewear' },
-    graduation: { img: 'graduation', group: 'headwear' },
-    parrot: { img: 'parrot', group: 'other' },
-    party: { img: 'party', group: 'headwear' },
-    pineapple: { img: 'pineapple', group: 'headwear' },
-    sunglasses: { img: 'sunglasses', group: 'eyewear' },
-    tophat: { img: 'tophat', group: 'headwear' },
-    xmas_hat: { img: 'xmas-hat', group: 'headwear' },
-    xmas_antlers: { img: 'xmas-antlers', group: 'headwear' },
-    xmas_scarf: { img: 'xmas-scarf', group: 'other' },
-  };
+  // Use STANDARD_ACCESSORIES from shared.js
 
   // Utility functions
   const sampleOne = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -105,15 +90,15 @@
 
   const elementToBox = (element) => {
     if (element === document.body) {
-      return { x: 0, y: -1000, width: window.innerWidth, height: 1000 };
+      return { x: 0, y: BODY_GROUND_OFFSET, width: window.innerWidth, height: -BODY_GROUND_OFFSET };
     }
     const isHedgehog = element.classList.contains('HedgehogBuddy');
     const rect = element.getBoundingClientRect();
     return {
-      x: rect.left + (isHedgehog ? 20 : 0),
-      y: window.innerHeight - rect.bottom + (isHedgehog ? 5 : 0),
-      width: rect.width - (isHedgehog ? 40 : 0),
-      height: rect.height - (isHedgehog ? 30 : 0),
+      x: rect.left + (isHedgehog ? HEDGEHOG_BOX_X_INSET : 0),
+      y: window.innerHeight - rect.bottom + (isHedgehog ? HEDGEHOG_BOX_Y_INSET : 0),
+      width: rect.width - (isHedgehog ? HEDGEHOG_BOX_WIDTH_INSET : 0),
+      height: rect.height - (isHedgehog ? HEDGEHOG_BOX_HEIGHT_INSET : 0),
     };
   };
 
@@ -195,12 +180,13 @@
       const key = (this.config.accessories || []).join(',');
       if (this._cachedAccessoriesKey !== key) {
         this._cachedAccessoriesKey = key;
-        this._cachedAccessories = (this.config.accessories || []).map((acc) => standardAccessories[acc]).filter(Boolean);
+        this._cachedAccessories = (this.config.accessories || []).map((acc) => STANDARD_ACCESSORIES[acc]).filter(Boolean);
       }
       return this._cachedAccessories;
     }
 
     setOnFire(times = 3) {
+      soundManager.fire();
       this.setOverlayAnimation('fire', {
         onComplete: () => {
           if (times === 1) {
@@ -212,7 +198,7 @@
       });
       this.setAnimation('stop', {});
       this.direction = sampleOne(['left', 'right']);
-      this.xVelocity = this.direction === 'left' ? -5 : 5;
+      this.xVelocity = this.direction === 'left' ? -USER_WALK_SPEED : USER_WALK_SPEED;
       this.jump();
     }
 
@@ -234,7 +220,7 @@
       }
 
       if (animationName === 'walk') {
-        this.xVelocity = this.direction === 'left' ? -1 : 1;
+        this.xVelocity = this.direction === 'left' ? -AUTO_WALK_SPEED : AUTO_WALK_SPEED;
       } else if (animationName === 'stop' && !this.isControlledByUser) {
         this.xVelocity = 0;
       }
@@ -279,7 +265,8 @@
       if (this.jumpCount >= MAX_JUMP_COUNT) return;
       this.ground = null;
       this.jumpCount += 1;
-      this.yVelocity = this.gravity * 5;
+      this.yVelocity = this.gravity * JUMP_VELOCITY;
+      soundManager.jump();
     }
 
     update() {
@@ -304,7 +291,7 @@
           if (this.mainAnimation?.name !== 'stop') {
             this.setAnimation('stop');
           }
-          this.xVelocity = Math.max(Math.min(this.xVelocity + screenMoveX * 10, 200), -200);
+          this.xVelocity = Math.max(Math.min(this.xVelocity + screenMoveX * 10, MAX_SCREEN_VELOCITY), -MAX_SCREEN_VELOCITY);
         }
       }
 
@@ -392,7 +379,7 @@
         this.y = this.y + this.yVelocity;
         if (this.y < 0) {
           this.y = 0;
-          this.yVelocity = -this.yVelocity * 0.4;
+          this.yVelocity = -this.yVelocity * BOUNCE_FACTOR;
         }
         this.x = this.x + this.xVelocity;
         this.direction = this.xVelocity > 0 ? 'right' : 'left';
@@ -403,7 +390,7 @@
       this.yVelocity -= this.gravity;
 
       if (!this.isControlledByUser && this.mainAnimation?.name !== 'walk' && this.onGround()) {
-        this.xVelocity = this.xVelocity * 0.6;
+        this.xVelocity = this.xVelocity * DAMPING_FACTOR;
       }
 
       let newY = this.y + this.yVelocity;
@@ -413,8 +400,9 @@
         const groundY = groundBoundingRect.y + groundBoundingRect.height;
 
         if (newY <= groundY) {
+          if (this.jumpCount > 0) soundManager.land();
           newY = groundY;
-          this.yVelocity = -this.yVelocity * 0.4;
+          this.yVelocity = -this.yVelocity * BOUNCE_FACTOR;
           this.ignoreGroundAboveY = undefined;
           this.jumpCount = 0;
         }
@@ -446,7 +434,7 @@
 
       // Refresh ground elements cache every 500ms instead of every frame
       const now = Date.now();
-      if (now - this._groundCacheTime > 500) {
+      if (now - this._groundCacheTime > GROUND_CACHE_TTL) {
         this._groundElementsCache = Array.from(
           document.querySelectorAll(
             'button, input, select, .btn, [role="button"], nav, header, footer, aside, .card, .modal, .dialog, .HedgehogBuddy'
@@ -621,9 +609,8 @@
           );
 
           if (relevantPositions.length) {
-            const maxVelocity = 250;
-            this.xVelocity = Math.min(maxVelocity, xPixelsPerSecond / relevantPositions.length / FPS);
-            this.yVelocity = Math.min(maxVelocity, (yPixelsPerSecond / relevantPositions.length / FPS) * -1);
+            this.xVelocity = Math.min(MAX_THROW_VELOCITY, xPixelsPerSecond / relevantPositions.length / FPS);
+            this.yVelocity = Math.min(MAX_THROW_VELOCITY, (yPixelsPerSecond / relevantPositions.length / FPS) * -1);
           }
 
           this.setAnimation('fall');
@@ -665,7 +652,7 @@
 
         const key = e.key.toLowerCase();
         lastKeys.push(key);
-        if (lastKeys.length > 20) lastKeys.shift();
+        if (lastKeys.length > SECRET_KEY_BUFFER_SIZE) lastKeys.shift();
 
         if ([' ', 'w', 'arrowup'].includes(key)) {
           this.jump();
@@ -698,7 +685,7 @@
             this.setAnimation('walk');
           }
           this.direction = ['arrowleft', 'a'].includes(key) ? 'left' : 'right';
-          this.xVelocity = this.direction === 'left' ? -5 : 5;
+          this.xVelocity = this.direction === 'left' ? -USER_WALK_SPEED : USER_WALK_SPEED;
 
           if (e.shiftKey) {
             this.direction = this.direction === 'left' ? 'right' : 'left';
@@ -738,12 +725,37 @@
         this.followMouse = true;
         this.lastKnownMousePosition = [e.clientX, e.clientY];
 
+        // Create web line SVG
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(svgNS, 'svg');
+        svg.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2147483646';
+        const line = document.createElementNS(svgNS, 'line');
+        line.setAttribute('stroke', 'rgba(255,255,255,0.5)');
+        line.setAttribute('stroke-width', '2');
+        svg.appendChild(line);
+        document.body.appendChild(svg);
+
+        const updateWebLine = () => {
+          if (!this.element) return;
+          const rect = this.element.getBoundingClientRect();
+          const hx = rect.left + rect.width / 2;
+          const hy = rect.top + rect.height / 2;
+          const [mx, my] = this.lastKnownMousePosition || [hx, hy];
+          line.setAttribute('x1', String(hx));
+          line.setAttribute('y1', String(hy));
+          line.setAttribute('x2', String(mx));
+          line.setAttribute('y2', String(my));
+        };
+
         const onMouseMove = (e) => {
           this.lastKnownMousePosition = [e.clientX, e.clientY];
+          updateWebLine();
         };
+        updateWebLine();
 
         const onMouseUp = () => {
           this.followMouse = false;
+          svg.remove();
           window.removeEventListener('mousemove', onMouseMove);
         };
 
@@ -778,32 +790,115 @@
     }
   }
 
+  // Sound effects manager using Web Audio API
+  class SoundManager {
+    constructor() {
+      this._ctx = null;
+      this.enabled = false;
+    }
+
+    _getContext() {
+      if (!this._ctx) {
+        this._ctx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return this._ctx;
+    }
+
+    _playTone(frequency, duration, type = 'sine', rampDown = true) {
+      if (!this.enabled) return;
+      const ctx = this._getContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(frequency, ctx.currentTime);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      if (rampDown) {
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      }
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + duration);
+    }
+
+    jump() {
+      if (!this.enabled) return;
+      const ctx = this._getContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(300, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.15);
+    }
+
+    land() {
+      this._playTone(120, 0.1, 'sine');
+    }
+
+    fire() {
+      if (!this.enabled) return;
+      const ctx = this._getContext();
+      const bufferSize = ctx.sampleRate * 0.3;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+      }
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      source.start(ctx.currentTime);
+    }
+  }
+
+  const soundManager = new SoundManager();
+
   // Main extension logic
-  let hedgehog = null;
+  let hedgehogs = [];
   let animationFrameId = null;
   let lastFrameTime = 0;
   const frameDuration = 1000 / FPS;
 
   const startHedgehog = (config) => {
-    if (hedgehog) {
-      hedgehog.destroy();
+    stopHedgehog();
+
+    const count = Math.max(1, Math.min(5, config.hedgehog_count || 1));
+    soundManager.enabled = !!config.sound_enabled;
+
+    for (let i = 0; i < count; i++) {
+      hedgehogs.push(new HedgehogActor(config));
     }
 
-    hedgehog = new HedgehogActor(config);
     lastFrameTime = performance.now();
 
     const loop = (currentTime) => {
       animationFrameId = requestAnimationFrame(loop);
 
-      // Throttle to target FPS
       const elapsed = currentTime - lastFrameTime;
       if (elapsed < frameDuration) return;
 
-      // Adjust for drift
-      lastFrameTime = currentTime - (elapsed % frameDuration);
+      // Cap catchup to 3 frames to prevent teleporting after lag spikes
+      const maxCatchup = frameDuration * 3;
+      lastFrameTime = currentTime - Math.min(elapsed % frameDuration, maxCatchup);
 
-      hedgehog.update();
-      hedgehog.render();
+      try {
+        for (const hog of hedgehogs) {
+          hog.update();
+          hog.render();
+        }
+      } catch (e) {
+        console.error('[HedgehogMode] Animation error:', e);
+      }
     };
 
     animationFrameId = requestAnimationFrame(loop);
@@ -814,22 +909,33 @@
       cancelAnimationFrame(animationFrameId);
       animationFrameId = null;
     }
-    if (hedgehog) {
-      hedgehog.destroy();
-      hedgehog = null;
+    for (const hog of hedgehogs) {
+      hog.destroy();
     }
+    hedgehogs = [];
   };
 
   const updateConfig = (config) => {
-    if (hedgehog) {
-      Object.assign(hedgehog.config, config);
+    soundManager.enabled = !!config.sound_enabled;
+
+    const newCount = Math.max(1, Math.min(5, config.hedgehog_count || 1));
+    // Adjust hedgehog count if changed
+    while (hedgehogs.length > newCount) {
+      hedgehogs.pop().destroy();
+    }
+    while (hedgehogs.length < newCount) {
+      hedgehogs.push(new HedgehogActor(config));
+    }
+
+    for (const hog of hedgehogs) {
+      Object.assign(hog.config, config);
     }
   };
 
   // Listen for messages from popup
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.type === 'TOGGLE_HEDGEHOG') {
-      if (hedgehog) {
+      if (hedgehogs.length > 0) {
         stopHedgehog();
         sendResponse({ enabled: false });
       } else {
@@ -849,22 +955,27 @@
     }
 
     if (message.type === 'GET_STATUS') {
-      sendResponse({ enabled: !!hedgehog });
+      const primary = hedgehogs[0] || null;
+      sendResponse({
+        enabled: hedgehogs.length > 0,
+        config: primary ? { ...primary.config } : null,
+      });
       return true;
     }
 
     if (message.type === 'SET_ON_FIRE') {
-      if (hedgehog) {
-        hedgehog.setOnFire();
+      if (hedgehogs.length > 0) {
+        hedgehogs[0].setOnFire();
         sendResponse({ success: true });
       }
       return true;
     }
   });
 
-  // Auto-start if enabled in settings
-  chrome.storage.sync.get(['hedgehogEnabled', 'hedgehogConfig'], (result) => {
-    if (result.hedgehogEnabled) {
+  // Auto-start if enabled in settings and not disabled on this site
+  chrome.storage.sync.get(['hedgehogEnabled', 'hedgehogConfig', 'disabledSites'], (result) => {
+    const disabledSites = result.disabledSites || [];
+    if (result.hedgehogEnabled && !disabledSites.includes(window.location.hostname)) {
       startHedgehog(result.hedgehogConfig || {});
     }
   });
@@ -873,6 +984,7 @@
   window._hedgehogBuddy = {
     start: startHedgehog,
     stop: stopHedgehog,
-    getActor: () => hedgehog,
+    getActors: () => hedgehogs,
+    getActor: () => hedgehogs[0] || null,
   };
 })();

@@ -230,6 +230,11 @@
       background: #3c4152;
     }
 
+    .preview-btn:focus-visible {
+      outline: 2px solid #d4a019;
+      outline-offset: 2px;
+    }
+
     .preview-btn.active {
       border-color: #d4a019;
     }
@@ -260,6 +265,42 @@
       object-fit: contain;
     }
 
+    .hedgehog-count-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .count-btn {
+      width: 32px;
+      height: 32px;
+      border: 1px solid #4b5167;
+      border-radius: 8px;
+      background: #2c2f3e;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .count-btn:hover {
+      background: #3c4152;
+    }
+
+    .count-btn:focus-visible {
+      outline: 2px solid #d4a019;
+      outline-offset: 2px;
+    }
+
+    .count-display {
+      font-size: 16px;
+      font-weight: 600;
+      min-width: 20px;
+      text-align: center;
+    }
+
     .footer {
       margin-top: 20px;
       padding-top: 12px;
@@ -288,7 +329,14 @@
     <label class="toggle-pill">
       <span>Enabled hedgehog mode</span>
       <span class="toggle">
-        <input type="checkbox" id="enableToggle">
+        <input type="checkbox" id="enableToggle" aria-label="Enable hedgehog mode">
+        <span class="toggle-slider"></span>
+      </span>
+    </label>
+    <label class="toggle-pill">
+      <span id="siteToggleLabel">Disable on this site</span>
+      <span class="toggle">
+        <input type="checkbox" id="siteToggle" aria-label="Disable on this site">
         <span class="toggle-slider"></span>
       </span>
     </label>
@@ -311,21 +359,28 @@
       <label class="option-toggle">
         <span>Walk around freely</span>
         <span class="toggle">
-          <input type="checkbox" id="walkingEnabled" checked>
+          <input type="checkbox" id="walkingEnabled" checked aria-label="Walk around freely">
           <span class="toggle-slider"></span>
         </span>
       </label>
       <label class="option-toggle">
         <span>Interact with elements</span>
         <span class="toggle">
-          <input type="checkbox" id="interactionsEnabled" checked>
+          <input type="checkbox" id="interactionsEnabled" checked aria-label="Interact with elements">
           <span class="toggle-slider"></span>
         </span>
       </label>
       <label class="option-toggle">
         <span>Keyboard controls (WASD / arrow keys)</span>
         <span class="toggle">
-          <input type="checkbox" id="controlsEnabled" checked>
+          <input type="checkbox" id="controlsEnabled" checked aria-label="Keyboard controls">
+          <span class="toggle-slider"></span>
+        </span>
+      </label>
+      <label class="option-toggle">
+        <span>Sound effects</span>
+        <span class="toggle">
+          <input type="checkbox" id="soundEnabled" aria-label="Sound effects">
           <span class="toggle-slider"></span>
         </span>
       </label>
@@ -333,29 +388,39 @@
   </div>
 
   <div class="section">
+    <div class="section-title">Hedgehog count</div>
+    <div class="hedgehog-count-control">
+      <button id="countDown" class="count-btn" aria-label="Decrease hedgehog count">-</button>
+      <span id="hedgehogCount" class="count-display">1</span>
+      <button id="countUp" class="count-btn" aria-label="Increase hedgehog count">+</button>
+    </div>
+  </div>
+
+  <div class="section">
     <div class="section-title">Skins and colors</div>
-    <div class="preview-grid" id="skinsGrid"></div>
+    <div class="preview-grid" id="skinsGrid" role="group" aria-label="Skins and colors"></div>
   </div>
 
   <div class="section">
     <div class="section-title">Headwear</div>
-    <div class="preview-grid" id="headwearGrid"></div>
+    <div class="preview-grid" id="headwearGrid" role="group" aria-label="Headwear"></div>
   </div>
 
   <div class="section">
     <div class="section-title">Eyewear</div>
-    <div class="preview-grid" id="eyewearGrid"></div>
+    <div class="preview-grid" id="eyewearGrid" role="group" aria-label="Eyewear"></div>
   </div>
 
   <div class="section">
     <div class="section-title">Other</div>
-    <div class="preview-grid" id="otherGrid"></div>
+    <div class="preview-grid" id="otherGrid" role="group" aria-label="Other accessories"></div>
   </div>
 
   <div class="footer">
     Made with love by <a href="https://posthog.com" target="_blank">PostHog</a>
   </div>
 
+  <script src="shared.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
