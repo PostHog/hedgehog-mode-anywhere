@@ -934,19 +934,6 @@
 
   // Listen for messages from popup
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (message.type === 'TOGGLE_HEDGEHOG') {
-      if (hedgehogs.length > 0) {
-        stopHedgehog();
-        sendResponse({ enabled: false });
-      } else {
-        chrome.storage.sync.get(['hedgehogConfig'], (result) => {
-          startHedgehog(result.hedgehogConfig || {});
-          sendResponse({ enabled: true });
-        });
-      }
-      return true;
-    }
-
     if (message.type === 'UPDATE_CONFIG') {
       updateConfig(message.config);
       chrome.storage.sync.set({ hedgehogConfig: message.config });
@@ -957,7 +944,6 @@
     if (message.type === 'GET_STATUS') {
       const primary = hedgehogs[0] || null;
       sendResponse({
-        enabled: hedgehogs.length > 0,
         config: primary ? { ...primary.config } : null,
       });
       return true;
@@ -977,6 +963,34 @@
     const disabledSites = result.disabledSites || [];
     if (result.hedgehogEnabled && !disabledSites.includes(window.location.hostname)) {
       startHedgehog(result.hedgehogConfig || {});
+    }
+  });
+
+  // Re-evaluate whether hedgehog should be running based on current storage state
+  const reconcileState = () => {
+    chrome.storage.sync.get(['hedgehogEnabled', 'hedgehogConfig', 'disabledSites'], (result) => {
+      const enabled = result.hedgehogEnabled;
+      const siteDisabled = (result.disabledSites || []).includes(window.location.hostname);
+      const shouldRun = enabled && !siteDisabled;
+
+      if (shouldRun && hedgehogs.length === 0) {
+        startHedgehog(result.hedgehogConfig || {});
+      } else if (!shouldRun && hedgehogs.length > 0) {
+        stopHedgehog();
+      }
+    });
+  };
+
+  // Sync config and state changes across tabs via storage
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'sync') return;
+
+    if (changes.hedgehogConfig && hedgehogs.length > 0) {
+      updateConfig(changes.hedgehogConfig.newValue || {});
+    }
+
+    if (changes.hedgehogEnabled || changes.disabledSites) {
+      reconcileState();
     }
   });
 

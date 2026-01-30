@@ -174,32 +174,19 @@ function saveAndSendConfig() {
   });
 }
 
-// Toggle hedgehog on/off
+// Toggle hedgehog on/off - just update storage, content script reacts via onChanged
 function toggleHedgehog(enabled) {
   chrome.storage.sync.set({ hedgehogEnabled: enabled });
-
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (tabs[0]) {
-      chrome.tabs.sendMessage(tabs[0].id, { type: 'TOGGLE_HEDGEHOG' }).catch(() => {
-        if (enabled) {
-          chrome.tabs.reload(tabs[0].id);
-        }
-      });
-    }
-  });
 }
 
-// Get current status from content script
-function getStatus() {
+// Sync live config from content script (e.g. after secret codes change skin)
+function syncLiveConfig() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0]) {
       chrome.tabs.sendMessage(tabs[0].id, { type: 'GET_STATUS' }, (response) => {
-        if (response) {
-          document.getElementById('enableToggle').checked = response.enabled;
-          if (response.config) {
-            currentConfig = { ...currentConfig, ...response.config };
-            updateUI();
-          }
+        if (response?.config) {
+          currentConfig = { ...currentConfig, ...response.config };
+          updateUI();
         }
       });
     }
@@ -228,8 +215,6 @@ function initSiteToggle() {
           if (!disabledSites.includes(hostname)) {
             disabledSites.push(hostname);
           }
-          // Stop hedgehog on this site
-          chrome.tabs.sendMessage(tabs[0].id, { type: 'TOGGLE_HEDGEHOG' }).catch(() => {});
         } else {
           disabledSites = disabledSites.filter(s => s !== hostname);
         }
@@ -255,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUI();
   });
 
-  getStatus();
+  syncLiveConfig();
 
   document.getElementById('enableToggle').addEventListener('change', (e) => {
     toggleHedgehog(e.target.checked);
