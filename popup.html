@@ -126,25 +126,6 @@
       flex-shrink: 0;
     }
 
-    .preview-hedgehog .sprite {
-      width: 80px;
-      height: 80px;
-      background-size: 800%;
-      image-rendering: pixelated;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-
-    .preview-hedgehog .accessory {
-      width: 80px;
-      height: 80px;
-      image-rendering: pixelated;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-
     .preview-text h2 {
       font-size: 16px;
       font-weight: 600;
@@ -245,26 +226,6 @@
       position: relative;
     }
 
-    .preview-btn .sprite {
-      width: 100%;
-      height: 100%;
-      background-size: 800%;
-      image-rendering: pixelated;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-
-    .preview-btn .accessory {
-      width: 100%;
-      height: 100%;
-      image-rendering: pixelated;
-      position: absolute;
-      top: 0;
-      left: 0;
-      object-fit: contain;
-    }
-
     .footer {
       margin-top: 20px;
       padding-top: 12px;
@@ -307,9 +268,7 @@
   </div>
 
   <div class="preview-card">
-    <div class="preview-hedgehog" id="previewHedgehog">
-      <div class="sprite" id="previewSprite"></div>
-    </div>
+    <div class="preview-hedgehog" id="previewHedgehog"></div>
     <div class="preview-text">
       <h2>Hi, I'm Max!</h2>
       <p>Don't mind me. I'm just here to keep you company.<br>
@@ -341,13 +300,6 @@
           <span class="toggle-slider"></span>
         </span>
       </label>
-      <label class="option-toggle">
-        <span>Sound effects</span>
-        <span class="toggle">
-          <input type="checkbox" id="soundEnabled" aria-label="Sound effects">
-          <span class="toggle-slider"></span>
-        </span>
-      </label>
     </div>
   </div>
 
@@ -375,7 +327,6 @@
     Made with love by <a href="https://posthog.com" target="_blank">PostHog</a>
   </div>
 
-  <script src="shared.js"></script>
-  <script src="popup.js"></script>
+  <script src="dist/popup.js"></script>
 </body>
 </html>

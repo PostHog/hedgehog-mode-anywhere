@@ -1,0 +1,28 @@
+{
+  "name": "hedgehog-mode-anywhere",
+  "version": "2.0.0",
+  "description": "Add an adorable animated hedgehog buddy to any website, powered by PostHog's hedgehog-mode engine.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "comment": "We compile @posthog/hedgehog-mode from vendored source (vendor/hedgehog-mode) rather than the npm dist, which pre-bundles pixi.js with an unreachable eval path that MV3 content scripts forbid. These are that engine's runtime deps.",
+  "dependencies": {
+    "gsap": "^3.12.7",
+    "lodash": "^4.17.21",
+    "matter-js": "^0.20.0",
+    "pixi.js": "^8.4.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-shadow": "^20.6.0",
+    "uuid": "^12.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  },
+  "allowScripts": {
+    "esbuild@0.24.2": true
+  }
+}
