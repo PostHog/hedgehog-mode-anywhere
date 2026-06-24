@@ -2,7 +2,7 @@
 
 Bring [PostHog](https://posthog.com)'s beloved hedgehog mascot to any website! An adorable animated companion that walks, jumps, and keeps you company while you browse.
 
-This extension is a thin wrapper around PostHog's official [`@posthog/hedgehog-mode`](https://github.com/PostHog/hedgehog-mode) engine (pixi.js + matter-js physics) — it brings the real in-app hedgehog to every page rather than reimplementing it.
+Powered by PostHog's official [`@posthog/hedgehog-mode`](https://github.com/PostHog/hedgehog-mode) engine, with pixi.js rendering and matter-js physics.
 
 ![Demo](demo.gif)
 

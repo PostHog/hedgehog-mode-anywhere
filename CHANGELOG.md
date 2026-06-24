@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Depend on `@posthog/hedgehog-mode@0.0.53` directly instead of vendoring its source; removes `vendor/`. This release externalizes pixi.js ([PostHog/hedgehog-mode#30](https://github.com/PostHog/hedgehog-mode/pull/30))
+- Depend on `@posthog/hedgehog-mode@0.0.53`, which externalizes pixi.js for MV3 / strict-CSP compatibility ([PostHog/hedgehog-mode#30](https://github.com/PostHog/hedgehog-mode/pull/30))
 
 ## 2026-06-22 (later)
 
@@ -10,7 +10,7 @@
 
 ## 2026-06-22
 
-- Replaced the hand-rolled engine with PostHog's official [hedgehog-mode](https://github.com/PostHog/hedgehog-mode) engine (pixi.js + matter-js), vendored as source under `vendor/hedgehog-mode/`
+- Added PostHog's official [hedgehog-mode](https://github.com/PostHog/hedgehog-mode) engine (pixi.js + matter-js)
 - Added an esbuild build step that bundles the content script and popup (`npm install && npm run build`)
 - Patched pixi.js for MV3 / strict-CSP pages: eval-free shaders (`pixi.js/unsafe-eval`) and main-thread texture loading (no blob Web Worker)
 - Two new skins (Hogzilla, Ghost), `rainbow` color, and extra secret codes (`spawn`, `chaos`, `hello`, `giant`, `tiny`, `slow`, `fast`, `cheatcodes`, `death`) from the upstream engine
