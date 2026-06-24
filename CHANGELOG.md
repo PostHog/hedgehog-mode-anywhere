@@ -2,21 +2,12 @@
 
 ## Unreleased
 
-- Depend on `@posthog/hedgehog-mode@0.0.53`, which externalizes pixi.js for MV3 / strict-CSP compatibility ([PostHog/hedgehog-mode#30](https://github.com/PostHog/hedgehog-mode/pull/30))
-
-## 2026-06-22 (later)
-
-- Bumped the vendored engine to upstream `73cb168` (v0.0.52): Spiderhog now slings a visible web (click to sling, hold + W/S to climb) and the skin system was refactored upstream
-
-## 2026-06-22
-
-- Added PostHog's official [hedgehog-mode](https://github.com/PostHog/hedgehog-mode) engine (pixi.js + matter-js)
+- Use `@posthog/hedgehog-mode@0.0.53`, which externalizes pixi.js for MV3 / strict-CSP compatibility ([PostHog/hedgehog-mode#30](https://github.com/PostHog/hedgehog-mode/pull/30))
 - Added an esbuild build step that bundles the content script and popup (`npm install && npm run build`)
 - Patched pixi.js for MV3 / strict-CSP pages: eval-free shaders (`pixi.js/unsafe-eval`) and main-thread texture loading (no blob Web Worker)
-- Two new skins (Hogzilla, Ghost), `rainbow` color, and extra secret codes (`spawn`, `chaos`, `hello`, `giant`, `tiny`, `slow`, `fast`, `cheatcodes`, `death`) from the upstream engine
-- In-page message bubbles and cheat sheet
+- Added Hogzilla and Ghost skins, `rainbow` color, Spiderhog web-slinging, in-page message bubbles, cheat sheet, and extra secret codes (`spawn`, `chaos`, `hello`, `giant`, `tiny`, `slow`, `fast`, `cheatcodes`, `death`)
 - Popup previews now render from the engine's spritesheet via `StaticHedgehog`
-- Removed the custom physics, sprite loop, sound effects, and `shared.js`/`content.css`
+- Updated the extension icon
 
 ## 2026-01-30
 
