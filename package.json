@@ -1,0 +1,24 @@
+{
+  "name": "hedgehog-mode-anywhere",
+  "version": "2.0.0",
+  "description": "Add an adorable animated hedgehog buddy to any website, powered by PostHog's hedgehog-mode engine.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "comment": "Requires @posthog/hedgehog-mode >=0.0.53 because that release externalizes pixi.js (PostHog/hedgehog-mode#30); the inlined-pixi builds (<=0.0.52) can't be patched for the eval/worker CSP limits of MV3 content scripts. pixi.js is a direct dep because content.jsx imports pixi.js/unsafe-eval and loadTextures.",
+  "dependencies": {
+    "@posthog/hedgehog-mode": "^0.0.53",
+    "pixi.js": "^8.4.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  },
+  "allowScripts": {
+    "esbuild@0.24.2": true
+  }
+}
