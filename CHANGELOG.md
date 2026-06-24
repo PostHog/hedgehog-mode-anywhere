@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2026-06-24
 
 - Use `@posthog/hedgehog-mode@0.0.53`, which externalizes pixi.js for MV3 / strict-CSP compatibility ([PostHog/hedgehog-mode#30](https://github.com/PostHog/hedgehog-mode/pull/30))
 - Added an esbuild build step that bundles the content script and popup (`npm install && npm run build`)
