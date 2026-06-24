@@ -23,11 +23,11 @@ Powered by PostHog's official [`@posthog/hedgehog-mode`](https://github.com/Post
 The extension bundles the [`@posthog/hedgehog-mode`](https://github.com/PostHog/hedgehog-mode) engine, so you need to build it once before loading:
 
 ```bash
-npm install
-npm run build
+pnpm install
+pnpm build
 ```
 
-This produces `dist/content.js`, `dist/popup.js`, and copies the hedgehog spritesheet into `assets/`. Use `npm run watch` to rebuild on change while developing.
+This produces `dist/content.js`, `dist/popup.js`, and copies the hedgehog spritesheet into `assets/`. Use `pnpm watch` to rebuild on change while developing.
 
 > Requires `@posthog/hedgehog-mode@0.0.53` or newer, which externalizes pixi.js ([PostHog/hedgehog-mode#30](https://github.com/PostHog/hedgehog-mode/pull/30)). Earlier builds inline pixi.js with a `new Function` shader path that MV3 content scripts forbid and that the extension can't patch. With pixi external, `src/content.jsx` patches the single shared pixi.js for eval-free shaders and main-thread texture loading, so the hedgehog runs on any page even under a strict Content-Security-Policy.
 

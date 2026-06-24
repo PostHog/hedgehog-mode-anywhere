@@ -4,6 +4,7 @@
   "description": "Add an adorable animated hedgehog buddy to any website, powered by PostHog's hedgehog-mode engine.",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.33.0",
   "scripts": {
     "build": "node build.mjs",
     "watch": "node build.mjs --watch"
@@ -16,9 +17,11 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "esbuild": "^0.24.0"
+    "esbuild": "^0.25.12"
   },
-  "allowScripts": {
-    "esbuild@0.24.2": true
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
