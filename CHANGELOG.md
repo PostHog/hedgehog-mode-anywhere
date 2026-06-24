@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-24
+
+- Use `@posthog/hedgehog-mode@0.0.53`, which externalizes pixi.js for MV3 / strict-CSP compatibility ([PostHog/hedgehog-mode#30](https://github.com/PostHog/hedgehog-mode/pull/30))
+- Added a pnpm/esbuild build step that bundles the content script and popup (`pnpm install && pnpm build`)
+- Patched pixi.js for MV3 / strict-CSP pages: eval-free shaders (`pixi.js/unsafe-eval`) and main-thread texture loading (no blob Web Worker)
+- Added Hogzilla and Ghost skins, `rainbow` color, Spiderhog web-slinging, in-page message bubbles, cheat sheet, and extra secret codes (`spawn`, `chaos`, `hello`, `giant`, `tiny`, `slow`, `fast`, `cheatcodes`, `death`)
+- Popup previews now render from the engine's spritesheet via `StaticHedgehog`
+- Updated the extension icon
+
 ## 2026-01-30
 
 - Per-site toggle to disable hedgehog on specific websites

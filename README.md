@@ -2,38 +2,45 @@
 
 Bring [PostHog](https://posthog.com)'s beloved hedgehog mascot to any website! An adorable animated companion that walks, jumps, and keeps you company while you browse.
 
+Powered by PostHog's official [`@posthog/hedgehog-mode`](https://github.com/PostHog/hedgehog-mode) engine, with pixi.js rendering and matter-js physics.
+
 ![Demo](demo.gif)
 
 ## ✨ Features
 
-- 🚶 Animated hedgehog with multiple animations (walk, jump, wave, inspect, and more)
+- 🚶 Animated hedgehog with multiple animations (walk, jump, wave, and more)
 - 🎯 Physics-based movement with gravity and bouncing
 - 🧱 Lands on and walks across page elements (buttons, inputs, navbars)
 - 🖱️ Drag and throw with your mouse
 - ⌨️ Keyboard controls (WASD / arrow keys)
-- 🎭 3 skins: Default, Spiderhog, Robohog
-- 🎨 11 color variations
+- 🎭 5 skins: Default, Spiderhog, Robohog, Hogzilla, Ghost
+- 🎨 10 color variations
 - 👒 16 accessories across headwear, eyewear, and other categories
 - 🥚 Secret codes and easter eggs
+
+## 🛠️ Build
+
+The extension bundles the [`@posthog/hedgehog-mode`](https://github.com/PostHog/hedgehog-mode) engine, so you need to build it once before loading:
+
+```bash
+pnpm install
+pnpm build
+```
+
+This produces `dist/content.js`, `dist/popup.js`, and copies the hedgehog spritesheet into `assets/`. Use `pnpm watch` to rebuild on change while developing.
+
+> Requires `@posthog/hedgehog-mode@0.0.53` or newer, which externalizes pixi.js ([PostHog/hedgehog-mode#30](https://github.com/PostHog/hedgehog-mode/pull/30)). Earlier builds inline pixi.js with a `new Function` shader path that MV3 content scripts forbid and that the extension can't patch. With pixi external, `src/content.jsx` patches the single shared pixi.js for eval-free shaders and main-thread texture loading, so the hedgehog runs on any page even under a strict Content-Security-Policy.
 
 ## 📦 Installation
 
 ### Chrome / Brave / Edge (Chromium browsers)
 
-1. Clone or download this repository
+1. Clone this repository and run the build step above
 2. Open your browser and navigate to `chrome://extensions/` (or `brave://extensions/`, `edge://extensions/`)
 3. Enable "Developer mode" using the toggle in the top-right corner
 4. Click "Load unpacked"
 5. Select the repository folder
 6. The hedgehog icon should appear in your browser toolbar
-
-### Firefox
-
-1. Clone or download this repository
-2. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`
-3. Click "Load Temporary Add-on..."
-4. Select the `manifest.json` file
-5. The hedgehog icon should appear in your browser toolbar
 
 ## 🚀 Usage
 
@@ -44,11 +51,14 @@ Bring [PostHog](https://posthog.com)'s beloved hedgehog mascot to any website! A
 ### 🎮 Controls
 
 | Input | Action |
-|-------|--------|
+| --- | --- |
 | Arrow keys / WASD | Move left/right |
-| Space / W / Up | Jump (double-jump supported!) |
-| Down / S | Wave (on ground) or drop through platforms |
-| Shift + direction | Moonwalk 🕺 |
+| Space / W / Up | Jump (hold for height) |
+| Down / S | Drop through platforms |
+| Shift + direction | Run 🏃 |
+| Alt + direction | Moonwalk 🕺 |
+| Hold F | 🔥 Breathe fire |
+| Click (as Spiderhog) | 🕸️ Sling a web — hold and press W / S to climb |
 | Click and drag | Pick up and throw |
 
 ### 🤫 Secret Codes
@@ -56,11 +66,18 @@ Bring [PostHog](https://posthog.com)'s beloved hedgehog mascot to any website! A
 Type these while on a page with the hedgehog:
 
 | Code | Effect |
-|------|--------|
+| --- | --- |
 | `fff` or `fire` | 🔥 Sets the hedgehog on fire |
-| `spiderhog` | 🕷️ Spiderhog skin (click to web-sling!) |
-| `robohog` | 🤖 Robohog skin |
-| ↑↑↓↓←→←→BA | 🚀 Fire + antigravity |
+| `spiderhog` / `robohog` / `ghost` | 🕷️🤖👻 Change skin |
+| `rainbow` | 🌈 Rainbow color |
+| `spawn` or `hedgehog` | 🦔 Spawn a friend |
+| `chaos` | 🦔🦔🦔 Spawn ten friends |
+| `hello` | 👋 Wave |
+| `giant` / `tiny` | Resize the hedgehog |
+| `slow` / `fast` | Change game speed |
+| `cheatcodes` | 📜 Show the full cheat sheet |
+| `death` | ☠️ Clear all hedgehogs |
+| ↑↑↓↓←→←→BA | 🚀 Konami code |
 
 ## ⚙️ Options
 
@@ -70,4 +87,4 @@ Type these while on a page with the hedgehog:
 
 ## Credits
 
-Built with ❤️ by [PostHog](https://posthog.com). Based on the hedgehog mode feature in the PostHog app.
+Built with ❤️ by [PostHog](https://posthog.com), powered by the [`@posthog/hedgehog-mode`](https://github.com/PostHog/hedgehog-mode) engine that drives the hedgehog in the PostHog app.
